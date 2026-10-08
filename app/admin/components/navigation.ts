@@ -272,7 +272,7 @@ export const PARCEIRO_MENU: MenuGroup[] = [
     "items": [
       {
         "href": "/admin/whatsapp",
-        "unavailable": true,
+        "unavailable": false,
         "label": "WhatsApp",
         "emoji": "📱"
       },
