@@ -1,0 +1,95 @@
+PREMIUM SHINE HUB — REVISÃO DO MENU — 07/10/2026
+
+COMO APLICAR NO SEU PROJETO
+1. Mantenha seu backup original.
+2. Feche o servidor local (Ctrl+C no terminal em que o app está aberto).
+3. Copie APENAS os quatro arquivos abaixo desta versão para os mesmos
+   caminhos na sua pasta de trabalho, substituindo quando solicitado:
+   app/admin/layout.tsx
+   app/admin/components/SidebarNavigation.tsx
+   app/admin/components/SidebarNavigation.module.css
+   app/admin/components/navigation.ts
+4. Preserve seus arquivos .env e .env.local. Eles não foram incluídos nesta
+   entrega. Nenhuma dependência nova é necessária para o menu.
+5. Inicie novamente com npm run dev e atualize a página.
+
+O pacote contém o restante do código do backup para referência. Para aplicar
+esta revisão, bastam os quatro arquivos acima. Não execute seed, db:push ou
+migrações para esta atualização. Não houve publicação nem alteração de dados.
+
+O QUE MUDOU
+- Matriz: Início, Catálogo, Operação, Financeiro, Ferramentas e Administração.
+- Parceiro: Início, Vendas, Catálogo e estoque, Financeiro, Operação,
+  Ferramentas e Minha conta.
+- Somente Início e a seção da página atual ficam abertos inicialmente.
+- Busca por função, seção ou caminho, sem exigir acentos.
+- Preferências de seções abertas salvas por perfil no navegador.
+- A seção da página atual abre automaticamente; pode ser recolhida manualmente.
+- Removidos dois atalhos repetidos no rodapé, o indicador fixo 90 e o botão
+  de olho sem função no topo.
+- Título atual passa a considerar também o menu do parceiro.
+- Correspondência de rotas respeita segmentos completos (evita seleção falsa).
+- Links e botões do menu podem ser operados pelo teclado.
+- Menu móvel fecha ao navegar ou pressionar Escape; tem botão de fechar.
+- Busca e rodapé permanecem separados da área rolável dos itens.
+- Funções sem página no backup ficam sinalizadas como indisponíveis.
+
+REVISÃO: PROBLEMAS ENCONTRADOS
+1. Menu da matriz com 16 destinos e 2 atalhos extras duplicados; menu de
+   parceiros com 26 destinos expostos. Corrigido com agrupamento.
+2. O primeiro clique em uma seção recolhida por padrão podia não abri-la:
+   o código invertia um valor não inicializado. Corrigido.
+3. Dez destinos do parceiro não possuem página correspondente neste backup:
+   /admin/devolucoes
+   /admin/meus-produtos
+   /admin/estoque-depositos
+   /admin/notas-compra
+   /admin/cobertura-custos
+   /admin/verificacao-etiquetas
+   /admin/extrair-sku-pdf
+   /admin/checklist-marketplace
+   /admin/whatsapp
+   /admin/extension-shopee
+   Sinalizados e desativados no menu. Isso não implementa as páginas ausentes.
+   Não foram redirecionados para telas parecidas: é necessário confirmar
+   o comportamento esperado e a autorização de cada função.
+4. Há credencial Basic fixa no código do navegador e validação correspondente
+   em APIs. Prioridade alta: substituir por autenticação no servidor e revisar
+   autorização por empresa. Esta revisão visual não corrige esse mecanismo.
+5. O layout trata role ausente como matriz e mantém authState sem utilizá-lo
+   para bloquear a interface. O controle real precisa ser garantido nas APIs;
+   esconder opções do menu não é controle de acesso. Comportamento prévio
+   preservado para não alterar o fluxo de login sem uma revisão completa.
+6. A checagem global de TypeScript aponta 15 erros nas pastas app_rebuild e
+   lib_rebuild. O tsconfig inclui essas cópias antigas; next.config.js ignora
+   erros de tipos e lint no build. Separar o código histórico e restaurar
+   essas verificações é uma próxima correção recomendada.
+7. A API /api/auth/me é consultada duas vezes pelo layout, além das consultas
+   de componentes e páginas. Centralizar a sessão evitaria chamadas repetidas.
+8. Várias páginas usam cores fixas, mesmo com tema claro/escuro global.
+   A nova navegação utiliza as variáveis de tema já existentes.
+
+LIMITES DA REVISÃO
+A prioridade desta entrega é a navegação. Não foi feita auditoria completa
+financeira, de estoque, segurança ou integrações. Não foi acessada a base real.
+As regras existentes de acesso, inclusive a exceção de empresa já presente no
+layout original, foram mantidas. Os problemas de autenticação acima permanecem.
+
+9. A página /admin/imagem carrega um iframe para
+   /simuladores/Compressor de Imagem.html, ausente neste backup. Retorno 404
+   confirmado no navegador. A página foi preservada; o compressor não foi
+   reconstruído nesta revisão.
+
+VALIDAÇÃO EXECUTADA
+- TypeScript do código ativo: passou (configuração temporária excluindo
+  somente app_rebuild e lib_rebuild). O tsconfig original foi preservado.
+- Navegador desktop 1440x1000 e celular 390x844: passou para navegação.
+- Testados: menu inicial compacto, primeiro clique, busca sem acentos,
+  resultado vazio, persistência após recarregar, navegação real entre rotas,
+  destaque ativo, fechamento no celular, Escape, menus por perfil e
+  desativação dos destinos sem página.
+- Conferência visual nos temas claro e escuro.
+- Sem erros JavaScript nas rotas visitadas com respostas simuladas das APIs.
+- Capturas em revisao/ mostram dados de teste, não os números da sua empresa.
+- Não foi validado build de produção, login real, banco, sincronização
+  de marketplace ou cálculos financeiros com dados reais.

@@ -1,0 +1,106 @@
+/* ============================================
+   Premium Shine Hub — Theme variables (light/dark)
+   ============================================ */
+
+:root,
+[data-theme='light'] {
+  /* Backgrounds */
+  --psh-bg-primary: #fafbfc;
+  --psh-bg-secondary: #ffffff;
+  --psh-bg-tertiary: #f9fafb;
+  --psh-bg-card: #ffffff;
+  --psh-bg-input: #ffffff;
+  --psh-hover-bg: #f3f4f6;
+
+  /* Borders */
+  --psh-border-primary: #e5e7eb;
+  --psh-border-secondary: #f3f4f6;
+  --psh-border-input: #d1d5db;
+
+  /* Text */
+  --psh-text-primary: #111827;
+  --psh-text-secondary: #374151;
+  --psh-text-tertiary: #6b7280;
+  --psh-text-muted: #9ca3af;
+  --psh-text-on-accent: #ffffff;
+
+  /* Accent */
+  --psh-accent-bg: #111827;
+  --psh-accent-text: #ffffff;
+  --psh-accent-hover: #1f2937;
+
+  /* Status */
+  --psh-success-bg: #f0fdf4;
+  --psh-success-border: #bbf7d0;
+  --psh-success-text: #15803d;
+  --psh-warn-bg: #fef3c7;
+  --psh-warn-border: #fde68a;
+  --psh-warn-text: #92400e;
+  --psh-error-bg: #fef2f2;
+  --psh-error-border: #fecaca;
+  --psh-error-text: #991b1b;
+  --psh-info-bg: #eff6ff;
+  --psh-info-border: #bfdbfe;
+  --psh-info-text: #1e40af;
+
+  /* Active menu item (sidebar) */
+  --psh-sidebar-active-bg: #f3e8ff;
+  --psh-sidebar-active-text: #7c3aed;
+}
+
+[data-theme='dark'] {
+  /* Backgrounds */
+  --psh-bg-primary: #0a0e14;
+  --psh-bg-secondary: #11161d;
+  --psh-bg-tertiary: #1a1f27;
+  --psh-bg-card: #131820;
+  --psh-bg-input: #1a1f27;
+  --psh-hover-bg: #1f2530;
+
+  /* Borders */
+  --psh-border-primary: #2a3140;
+  --psh-border-secondary: #1f2530;
+  --psh-border-input: #3a4150;
+
+  /* Text */
+  --psh-text-primary: #e5e7eb;
+  --psh-text-secondary: #cbd5e1;
+  --psh-text-tertiary: #94a3b8;
+  --psh-text-muted: #64748b;
+  --psh-text-on-accent: #ffffff;
+
+  /* Accent */
+  --psh-accent-bg: #7c3aed;
+  --psh-accent-text: #ffffff;
+  --psh-accent-hover: #6d28d9;
+
+  /* Status (mais escuros pra dark) */
+  --psh-success-bg: #052e16;
+  --psh-success-border: #14532d;
+  --psh-success-text: #4ade80;
+  --psh-warn-bg: #422006;
+  --psh-warn-border: #78350f;
+  --psh-warn-text: #fbbf24;
+  --psh-error-bg: #450a0a;
+  --psh-error-border: #7f1d1d;
+  --psh-error-text: #fca5a5;
+  --psh-info-bg: #0c2a4a;
+  --psh-info-border: #1e3a5f;
+  --psh-info-text: #93c5fd;
+
+  /* Active menu item (sidebar) */
+  --psh-sidebar-active-bg: #3b0764;
+  --psh-sidebar-active-text: #c4b5fd;
+}
+
+html, body {
+  background: var(--psh-bg-primary);
+  color: var(--psh-text-primary);
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Quando usuário escolher dark, forçamos o body inteiro (caso algum style inline tente branco) */
+[data-theme='dark'] body {
+  background: var(--psh-bg-primary);
+  color: var(--psh-text-primary);
+}

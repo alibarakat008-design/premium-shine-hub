@@ -1,0 +1,23 @@
+.navigation { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 12px 10px; }
+.searchBox { position: relative; margin-bottom: 12px; flex-shrink: 0; }
+.search { box-sizing: border-box; width: 100%; min-height: 38px; padding: 9px 28px 9px 10px; border: 1px solid var(--psh-border-primary); border-radius: 8px; background: var(--psh-bg-primary); color: var(--psh-text-primary); font: inherit; font-size: 12px; }
+.search::-webkit-search-cancel-button { display: none; }
+.clear { position: absolute; right: 4px; top: 4px; height: 30px; width: 26px; background: transparent; border: 0; cursor: pointer; color: var(--psh-text-secondary); font-size: 20px; }
+.groups { overflow-y: auto; min-height: 0; }
+.group { margin-bottom: 4px; }
+.heading { box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 42px; padding: 10px; border: 0; border-radius: 8px; background: transparent; color: var(--psh-text-secondary); font: inherit; font-size: 13px; font-weight: 600; text-align: left; cursor: pointer; }
+.heading:hover, .link:hover { background: var(--psh-hover-bg); }
+.heading:disabled { cursor: default; opacity: 1; }
+.activeHeading { color: var(--psh-sidebar-active-text); }
+.chevron { font-size: 19px; line-height: 1; }
+.sectionLabel { padding: 4px 10px 8px; font-size: 10px; font-weight: 700; color: var(--psh-text-muted); text-transform: uppercase; letter-spacing: .8px; }
+.link { display: flex; align-items: center; gap: 9px; min-height: 38px; box-sizing: border-box; padding: 9px 10px 9px 18px; margin-bottom: 2px; border-radius: 8px; color: var(--psh-text-secondary); text-decoration: none; font-size: 12px; line-height: 1.4; }
+.activeLink, .activeLink:hover { background: var(--psh-sidebar-active-bg); color: var(--psh-sidebar-active-text); font-weight: 600; }
+.icon { width: 18px; text-align: center; flex-shrink: 0; }
+.empty { padding: 10px; font-size: 12px; line-height: 1.5; color: var(--psh-text-muted); }
+.search:focus-visible, .heading:focus-visible, .link:focus-visible, .clear:focus-visible { outline: 2px solid var(--psh-sidebar-active-text); outline-offset: -2px; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.unavailable { opacity: .55; cursor: not-allowed; }
+.unavailable:hover { background: transparent; }
+.unavailableLabel { display: block; font-size: 9px; margin-top: 2px; }

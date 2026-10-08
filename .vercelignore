@@ -1,0 +1,26 @@
+# Build outputs
+.next/
+.next_old_build/
+.next_build_done/
+.next_original/
+.vercel/
+.preview/
+
+# Dependencies
+node_modules/
+
+# Cache
+cache/
+
+# Backups (HAVE LARGE FILES)
+premium-shine-hub-BACKUP-2026-08-31-175359/
+premium-shine-hub-BACKUP*/
+
+# Temp files
+*.log
+*.tmp
+@next/
+@prisma/
+
+# Python scripts
+_*.py

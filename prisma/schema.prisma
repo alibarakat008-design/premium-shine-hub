@@ -1,0 +1,1300 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model affiliate_links {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  afiliado_id     String?   @db.Uuid
+  product_id      String?   @db.Uuid
+  slug            String    @unique @db.VarChar(50)
+  url_completa    String?
+  cliques         Int?      @default(0)
+  vendas          Int?      @default(0)
+  comissao_gerada Decimal?  @default(0) @db.Decimal(10, 2)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users?    @relation(fields: [afiliado_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products        products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model api_keys {
+  id              String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome            String     @db.VarChar(255)
+  descricao       String?
+  company_id      String?    @db.Uuid
+  key             String     @unique @db.VarChar(255)
+  scopes          String[]
+  allowed_origins String[]
+  ativa           Boolean?   @default(true)
+  ultimo_uso      DateTime?  @db.Timestamp(6)
+  expira_em       DateTime?  @db.Timestamp(6)
+  created_at      DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?  @default(now()) @db.Timestamp(6)
+  companies       companies? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model audit_log {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id          String?   @db.Uuid
+  acao             String?   @db.VarChar(100)
+  tabela           String?   @db.VarChar(50)
+  registro_id      String?   @db.Uuid
+  dados_anteriores Json?
+  dados_novos      Json?
+  ip_address       String?   @db.Inet
+  user_agent       String?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  users            users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_audit_created")
+  @@index([user_id], map: "idx_audit_user")
+}
+
+model brands {
+  id                String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome              String            @unique @db.VarChar(100)
+  descricao         String?
+  logo_url          String?
+  ativa             Boolean?          @default(true)
+  margem_minima_pct Decimal?          @default(20.00) @db.Decimal(5, 2)
+  is_marca_propria  Boolean?          @default(false)
+  created_at        DateTime?         @default(now()) @db.Timestamp(6)
+  pricing_rules     pricing_rules[]
+  products          products[]
+  sales_forecasts   sales_forecasts[]
+}
+
+model cashflow {
+  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  company_id         String?             @db.Uuid
+  tipo               cashflow_type
+  categoria          String?             @db.VarChar(50)
+  descricao          String?
+  valor              Decimal             @db.Decimal(10, 2)
+  order_id           String?             @db.Uuid
+  purchase_id        String?             @db.Uuid
+  realizado          Boolean?            @default(false)
+  data_prevista      DateTime?           @db.Date
+  data_realizada     DateTime?           @db.Date
+  conta_bancaria     String?             @db.VarChar(100)
+  created_at         DateTime?           @default(now()) @db.Timestamp(6)
+  companies          companies?          @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders             orders?             @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_purchases supplier_purchases? @relation(fields: [purchase_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([company_id], map: "idx_cashflow_company")
+  @@index([data_prevista], map: "idx_cashflow_data")
+  @@index([tipo], map: "idx_cashflow_tipo")
+}
+
+model categories {
+  id               String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome             String       @db.VarChar(100)
+  slug             String       @unique @db.VarChar(100)
+  parent_id        String?      @db.Uuid
+  icone            String?      @db.VarChar(50)
+  ordem            Int?         @default(0)
+  ativa            Boolean?     @default(true)
+  created_at       DateTime?    @default(now()) @db.Timestamp(6)
+  categories       categories?  @relation("categoriesTocategories", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_categories categories[] @relation("categoriesTocategories")
+  products         products[]
+}
+
+model commissions_paid {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String?   @db.Uuid
+  tipo            String?   @db.VarChar(20)
+  mes_referencia  String?   @db.VarChar(7)
+  valor_total     Decimal?  @db.Decimal(10, 2)
+  valor_pago      Decimal?  @db.Decimal(10, 2)
+  data_pagamento  DateTime? @db.Timestamp(6)
+  forma_pagamento String?   @db.VarChar(50)
+  comprovante_url String?
+  observacao      String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  users           users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model companies {
+  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cnpj                 String                 @unique @db.VarChar(18)
+  razao_social         String                 @db.VarChar(255)
+  nome_fantasia        String?                @db.VarChar(255)
+  inscricao_estadual   String?                @db.VarChar(50)
+  cnae                 String?                @db.VarChar(20)
+  endereco             Json?
+  telefone             String?                @db.VarChar(20)
+  email                String?                @db.VarChar(255)
+  ativa                Boolean?               @default(true)
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(6)
+  api_keys             api_keys[]
+  cashflow             cashflow[]
+  invoices             invoices[]
+  marketplace_accounts marketplace_accounts[]
+  orders               orders[]
+  price_history        price_history[]
+  pricing_rules        pricing_rules[]
+  product_prices       product_prices[]
+  supplier_purchases   supplier_purchases[]
+}
+
+model customers {
+  id                      String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome                    String    @db.VarChar(255)
+  email                   String?   @db.VarChar(255)
+  telefone                String?   @db.VarChar(20)
+  cpf                     String?   @db.VarChar(14)
+  enderecos               Json?
+  endereco_padrao         Json?
+  total_pedidos           Int?      @default(0)
+  total_gasto             Decimal?  @default(0) @db.Decimal(10, 2)
+  ultima_compra           DateTime? @db.Timestamp(6)
+  tags                    String[]
+  origem_lead             String?   @db.VarChar(50)
+  consentimento_marketing Boolean?  @default(false)
+  created_at              DateTime? @default(now()) @db.Timestamp(6)
+  updated_at              DateTime? @default(now()) @db.Timestamp(6)
+  orders                  orders[]
+  customer_notes          customer_notes[]
+  customer_tags           customer_tags[]
+}
+
+model inventory {
+  id                 String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id         String?   @unique @db.Uuid
+  quantidade_atual   Int       @default(0)
+  quantidade_minima  Int?      @default(15)
+  quantidade_maxima  Int?
+  localizacao_fisica String?   @db.VarChar(100)
+  custo_medio        Decimal?  @db.Decimal(10, 2)
+  ultima_entrada     DateTime? @db.Timestamp(6)
+  ultima_saida       DateTime? @db.Timestamp(6)
+  lote               String?   @db.VarChar(50)
+  data_fabricacao    DateTime? @db.Date
+  data_validade      DateTime? @db.Date
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+  products           products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_inventory_product")
+}
+
+model inventory_movements {
+  id                String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id        String?   @db.Uuid
+  tipo              mov_tipo
+  quantidade        Int
+  estoque_anterior  Int?
+  estoque_posterior Int?
+  origem_tipo       String?   @db.VarChar(50)
+  origem_id         String?   @db.Uuid
+  user_id           String?   @db.Uuid
+  observacao        String?
+  created_at        DateTime? @default(now()) @db.Timestamp(6)
+  products          products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users             users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_mov_created")
+  @@index([product_id], map: "idx_mov_product")
+  @@index([tipo], map: "idx_mov_tipo")
+}
+
+model inventory_reservations {
+  id         String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id String?      @db.Uuid
+  quantidade Int
+  order_id   String?      @db.Uuid
+  canal      canal_venda?
+  expira_em  DateTime     @db.Timestamp(6)
+  created_at DateTime?    @default(now()) @db.Timestamp(6)
+  products   products?    @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model invoices {
+  id           String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  company_id   String?    @db.Uuid
+  order_id     String?    @db.Uuid
+  numero       String?    @db.VarChar(50)
+  chave_acesso String?    @db.VarChar(50)
+  tipo         String?    @db.VarChar(10)
+  xml_url      String?
+  pdf_url      String?
+  status       String?    @db.VarChar(20)
+  valor_total  Decimal?   @db.Decimal(10, 2)
+  emitida_em   DateTime?  @db.Timestamp(6)
+  created_at   DateTime?  @default(now()) @db.Timestamp(6)
+  companies    companies? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders       orders?    @relation(fields: [order_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model marketplace_accounts {
+  id                   String                 @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  plataforma           String                 @db.VarChar(50)
+  company_id           String?                @db.Uuid
+  account_id           String?                @db.VarChar(100)
+  nickname             String?                @db.VarChar(255)
+  access_token         String?
+  refresh_token        String?
+  token_expira_em      DateTime?              @db.Timestamp(6)
+  ativa                Boolean?               @default(true)
+  ultima_sincronizacao DateTime?              @db.Timestamp(6)
+  config               Json?
+  sync_status          String?                @default("idle") @db.VarChar(20)
+  sync_progress        Json?
+  sync_result          Json?
+  created_at           DateTime?              @default(now()) @db.Timestamp(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamp(6)
+  companies            companies?             @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  marketplace_listings marketplace_listings[]
+  orders               orders[]
+}
+
+model marketplace_listings {
+  id                   String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id           String?               @db.Uuid
+  account_id           String?               @db.Uuid
+  listing_id           String                @db.VarChar(100)
+  permalink            String?
+  status               String?               @db.VarChar(50)
+  preco_atual          Decimal?              @db.Decimal(10, 2)
+  preco_original       Decimal?              @db.Decimal(10, 2)
+  preco_promocional    Decimal?              @db.Decimal(10, 2)
+  promocao_inicio      DateTime?             @db.Timestamp(6)
+  promocao_fim         DateTime?             @db.Timestamp(6)
+  promocao_tipo        String?               @db.VarChar(30)
+  promocao_id_ml       String?               @db.VarChar(50)
+  frete_gratis         Boolean?              @default(false)
+  envio_full           Boolean?              @default(false)
+  etiqueta_impressa    Boolean?              @default(false)
+  etiqueta_impressa_em DateTime?             @db.Timestamp(6)
+  vendas_total         Int?                  @default(0)
+  views_total          Int?                  @default(0)
+  stock_disponivel_ml  Int?                  @default(0)
+  listing_type         String?               @db.VarChar(30)
+  health               Decimal?              @db.Decimal(3, 2)
+  condition            String?               @db.VarChar(20)
+  modo_compra          String?               @db.VarChar(30)
+  categoria_id_ml      String?               @db.VarChar(50)
+  data_criacao_ml      DateTime?             @db.Timestamp(6)
+  tags                 String[]
+  last_sync_at         DateTime?             @default(now()) @db.Timestamp(6)
+  marketplace_accounts marketplace_accounts? @relation(fields: [account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products             products?             @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([account_id, vendas_total(sort: Desc)], map: "idx_ml_listings_vendas")
+  @@index([account_id, listing_type], map: "idx_ml_listings_type")
+  @@unique([account_id, listing_id])
+}
+
+model order_items {
+  id                String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  order_id          String?            @db.Uuid
+  product_id        String?            @db.Uuid
+  sku               String?            @db.VarChar(50)
+  nome_produto      String?            @db.VarChar(255)
+  foto_url          String?
+  quantidade        Int
+  preco_unitario    Decimal            @db.Decimal(10, 2)
+  preco_total       Decimal            @db.Decimal(10, 2)
+  custo_unitario    Decimal?           @db.Decimal(10, 2)
+  embalagem_id      String?            @db.Uuid
+  packaging_options packaging_options? @relation(fields: [embalagem_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orders            orders?            @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  products          products?          @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([order_id], map: "idx_order_items_order")
+  @@index([product_id], map: "idx_order_items_product")
+}
+
+model orders {
+  id                              String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+order_number                    String?               @unique @db.VarChar(50)
+  // pack_id do ML: agrupamento de várias vendas no mesmo envio
+  // (o número que aparece na listagem principal do painel ML)
+  pack_id                         String?               @db.VarChar(50)
+  origem                          order_origem
+  company_id                      String?               @db.Uuid
+  marketplace_account_id          String?               @db.Uuid
+  vendedor_id                     String?               @db.Uuid
+  afiliado_id                     String?               @db.Uuid
+  customer_id                     String?               @db.Uuid
+  status                          order_status?         @default(pendente)
+  subtotal                        Decimal               @db.Decimal(10, 2)
+  desconto                        Decimal?              @default(0) @db.Decimal(10, 2)
+  frete                           Decimal?              @default(0) @db.Decimal(10, 2)
+  embalagem                       Decimal?              @default(0) @db.Decimal(10, 2)
+  total                           Decimal               @db.Decimal(10, 2)
+  custo_total                     Decimal?              @db.Decimal(10, 2)
+  lucro_bruto                     Decimal?              @db.Decimal(10, 2)
+  lucro_liquido                   Decimal?              @db.Decimal(10, 2)
+  endereco_entrega                Json?
+  codigo_rastreio                 String?               @db.VarChar(100)
+  transportadora                  String?               @db.VarChar(100)
+  previsao_entrega                DateTime?             @db.Date
+  data_envio                      DateTime?             @db.Timestamp(6)
+  data_entrega                    DateTime?             @db.Timestamp(6)
+  comissao_seller_pct             Decimal?              @db.Decimal(5, 2)
+  comissao_seller_valor           Decimal?              @db.Decimal(10, 2)
+  comissao_vendedora_pct          Decimal?              @db.Decimal(5, 2)
+  comissao_vendedora_valor        Decimal?              @db.Decimal(10, 2)
+  comissao_afiliado_pct           Decimal?              @db.Decimal(5, 2)
+  comissao_afiliado_valor         Decimal?              @db.Decimal(10, 2)
+  // Valor LÍQUIDO que o Mercado Livre deposita na conta (transaction_amount)
+  // = total_amount - comissao_seller_valor - frete - ajustes
+  recebimento_liquido             Decimal?              @db.Decimal(10, 2)
+  forma_pagamento                 String?               @db.VarChar(50)
+  payment_id                      String?               @db.VarChar(100)
+  pago_em                         DateTime?             @db.Timestamp(6)
+  etiqueta_impressa               Boolean?              @default(false)
+  etiqueta_impressa_em            DateTime?             @db.Timestamp(6)
+  // Tipo de envio REAL do shipment (vem do /shipments/{id}.logistic_type)
+  // 'fulfillment' = FULL, 'self_service' = FLEX, 'me2'/'me1' = Mercado Envios
+  tipo_envio                      String?               @db.VarChar(30)
+  // Custo FLEX (R$13,90 padrão — editável se carrier for diferente)
+  custo_flex                      Decimal?              @db.Decimal(10, 2)
+  // Decomposição da comissão ML (pra mostrar no painel vendas-ao-vivo):
+  // - bonus_envio_valor: base_cost - list_cost do shipment (estorno "bônus por envio")
+  // - bonus_cupom_valor: cupom + bônus implícito (estorno "descontos e bônus")
+  // - tarifa_pct_valor: tarifa cheia de 12% (= total * 0.12)
+  // - tarifa_fixa_valor: custo fixo ML (= tarifa_bruta - pct)
+  bonus_envio_valor               Decimal?              @db.Decimal(10, 2)
+  bonus_cupom_valor               Decimal?              @db.Decimal(10, 2)
+  tarifa_pct_valor                Decimal?              @db.Decimal(10, 2)
+  tarifa_fixa_valor               Decimal?              @db.Decimal(10, 2)
+  // Total pago pelo buyer (vem do payments[0].total_paid_amount) — inclui cupons/estornos
+  // Diferença entre total_paid_amount e transaction_amount = bônus total devolvido pelo ML
+  total_paid_amount               Decimal?              @db.Decimal(10, 2)
+  created_at                      DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at                      DateTime?             @default(now()) @db.Timestamp(6)
+  cashflow                        cashflow[]
+  invoices                        invoices[]
+  order_items                     order_items[]
+  users_orders_afiliado_idTousers users?                @relation("orders_afiliado_idTousers", fields: [afiliado_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  companies                       companies?            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  customers                       customers?            @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  marketplace_accounts            marketplace_accounts? @relation(fields: [marketplace_account_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_orders_vendedor_idTousers users?                @relation("orders_vendedor_idTousers", fields: [vendedor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([company_id], map: "idx_orders_company")
+  @@index([created_at], map: "idx_orders_created")
+  @@index([customer_id], map: "idx_orders_customer")
+  @@index([origem], map: "idx_orders_origem")
+  @@index([status], map: "idx_orders_status")
+  @@index([vendedor_id], map: "idx_orders_vendedor")
+}
+
+model packaging_options {
+  id            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome          String        @db.VarChar(100)
+  descricao     String?
+  foto_url      String?
+  custo         Decimal       @db.Decimal(10, 2)
+  preco_cliente Decimal       @db.Decimal(10, 2)
+  margem        Decimal?      @default(dbgenerated("(preco_cliente - custo)")) @db.Decimal(10, 2)
+  estoque       Int?          @default(0)
+  ativo         Boolean?      @default(true)
+  created_at    DateTime?     @default(now()) @db.Timestamp(6)
+  order_items   order_items[]
+}
+
+model price_history {
+  id         String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id String?      @db.Uuid
+  canal      canal_venda?
+  company_id String?      @db.Uuid
+  preco      Decimal      @db.Decimal(10, 2)
+  motivo     String?      @db.VarChar(100)
+  created_at DateTime?    @default(now()) @db.Timestamp(6)
+  companies  companies?   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products   products?    @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_price_history_created")
+  @@index([product_id], map: "idx_price_history_product")
+}
+
+model product_promotions {
+  id                  String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id          String?    @db.Uuid
+  nome                String?    @db.VarChar(100)
+  descricao           String?
+  tipo                String?    @default("percentage") @db.VarChar(20)
+  desconto            Decimal    @db.Decimal(10, 2)
+  preco_original      Decimal?   @db.Decimal(10, 2)
+  preco_promocional   Decimal?   @db.Decimal(10, 2)
+  data_inicio         DateTime?  @db.Timestamp(6)
+  data_fim            DateTime?  @db.Timestamp(6)
+  status              String?    @default("ativa") @db.VarChar(20)
+  promocao_id_ml      String?    @db.VarChar(100)
+  created_at          DateTime?  @default(now()) @db.Timestamp(6)
+  products            products?  @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([product_id], map: "idx_product_promotions_product")
+  @@index([status], map: "idx_product_promotions_status")
+}
+
+model product_bundle_items {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  bundle_id     String?  @db.Uuid
+  product_id    String?  @db.Uuid
+  quantidade    Int      @default(1)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  products      products? @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  product_bundles product_bundles? @relation(fields: [bundle_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([bundle_id], map: "idx_bundle_items_bundle")
+  @@index([product_id], map: "idx_bundle_items_product")
+}
+
+model product_bundles {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome          String   @db.VarChar(100)
+  descricao     String?
+  sku           String?  @unique @db.VarChar(50)
+  ativo         Boolean? @default(true)
+  preco_venda   Decimal? @db.Decimal(10, 2)
+  custo_total   Decimal? @db.Decimal(10, 2)
+  margem_pct    Decimal? @db.Decimal(5, 2)
+  estoque_virtual Int?   @default(0)
+  items         product_bundle_items[]
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model customer_tags {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id  String?  @db.Uuid
+  tag          String   @db.VarChar(50)
+  cor          String?  @db.VarChar(20)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  customers    customers? @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([customer_id], map: "idx_customer_tags_customer")
+}
+
+model customer_notes {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id  String?  @db.Uuid
+  nota         String
+  autor        String?  @db.VarChar(100)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  customers    customers? @relation(fields: [customer_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([customer_id], map: "idx_customer_notes_customer")
+}
+
+model smart_alerts {
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tipo          String   @db.VarChar(50)  // preco_fora, estoque_critico, venda_suspeita, giro_lento, etc
+  severidade    String?  @default("info") @db.VarChar(20)  // info, warning, critical
+  titulo        String   @db.VarChar(255)
+  mensagem      String
+  entidade_tipo String?  @db.VarChar(50)  // product, order, customer
+  entidade_id   String?  @db.Uuid
+  acao_url      String?
+  lido          Boolean? @default(false)
+  resolvido     Boolean? @default(false)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([tipo], map: "idx_smart_alerts_tipo")
+  @@index([lido], map: "idx_smart_alerts_lido")
+  @@index([created_at], map: "idx_smart_alerts_created")
+}
+
+model bank_statements {
+  id           String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  data         DateTime? @db.Date
+  descricao    String?  @db.VarChar(255)
+  valor        Decimal? @db.Decimal(10, 2)
+  tipo         String?  @db.VarChar(20)  // credito, debito
+  categoria    String?  @db.VarChar(50)
+  matched_with String?  @db.VarChar(50)  // order, invoice, expense
+  matched_id   String?  @db.Uuid
+  confianca    Decimal? @db.Decimal(5, 2)
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([data], map: "idx_bank_statements_data")
+  @@index([matched_with], map: "idx_bank_statements_matched")
+}
+
+model company_settings {
+  id              String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  company_id      String? @db.Uuid
+  margem_minima   Decimal? @default(20) @db.Decimal(5, 2)
+  margem_padrao   Decimal? @default(50) @db.Decimal(5, 2)
+  alerta_estoque  Int?     @default(5)
+  cobertura_dias  Int?     @default(45)
+  comissao_ml     Decimal? @default(13) @db.Decimal(5, 2)
+  comissao_shopee Decimal? @default(14) @db.Decimal(5, 2)
+  comissao_b2c    Decimal? @default(4) @db.Decimal(5, 2)
+  comissao_b2b    Decimal? @default(5) @db.Decimal(5, 2)
+  comissao_vend   Decimal? @default(10) @db.Decimal(5, 2)
+  dolar_padrao    Decimal? @default(5.5) @db.Decimal(5, 2)
+  margem_preco_min_pct Decimal? @default(20) @db.Decimal(5, 2) // alerta preço fora se margem < X%
+  email_nfe       String? @db.VarChar(255)
+  email_pedidos   String? @db.VarChar(255)
+  estoque_minimo_padrao Int? @default(5)
+  dias_alerta_giro Int?   @default(60)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model pricing_rules {
+  id          String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id  String?      @db.Uuid
+  marca_id    String?      @db.Uuid
+  canal       canal_venda?
+  company_id  String?      @db.Uuid
+  tipo_regra  String?      @db.VarChar(50)
+  valor_regra Decimal?     @db.Decimal(10, 2)
+  data_inicio DateTime?    @db.Date
+  data_fim    DateTime?    @db.Date
+  ativo       Boolean?     @default(true)
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
+  companies   companies?   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brands      brands?      @relation(fields: [marca_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products    products?    @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model product_prices {
+  id                   String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id           String?     @db.Uuid
+  canal                canal_venda
+  company_id           String?     @db.Uuid
+  custo                Decimal?    @db.Decimal(10, 2)
+  preco_venda          Decimal     @db.Decimal(10, 2)
+  preco_promocional    Decimal?    @db.Decimal(10, 2)
+  margem_pct           Decimal?    @db.Decimal(5, 2)
+  preco_minimo         Decimal?    @db.Decimal(10, 2)
+  preco_maximo         Decimal?    @db.Decimal(10, 2)
+  preco_dinamico_ativo Boolean?    @default(false)
+  updated_at           DateTime?   @default(now()) @db.Timestamp(6)
+  companies            companies?  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products             products?   @relation(fields: [product_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([product_id, canal, company_id])
+}
+
+model products {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sku                     String                    @unique @db.VarChar(50)
+  ean                     String?                   @db.VarChar(20)
+  nome                    String                    @db.VarChar(255)
+  descricao_curta         String?
+  descricao_completa      String?
+  marca_id                String?                   @db.Uuid
+  categoria_id            String?                   @db.Uuid
+  fornecedor_id           String?                   @db.Uuid
+  genero                  String?                   @db.VarChar(20)
+  volume                  String?                   @db.VarChar(50)
+  ncm                     String?                   @db.VarChar(20)
+  notas_olfativas         Json?
+  foto_principal_url      String?
+  fotos_adicionais        String[]
+  ativo                   Boolean?                  @default(true)
+  destaque                Boolean?                  @default(false)
+  publicado_site           Boolean?                  @default(false)
+  url_site                 String?
+  publicado_shopee         Boolean?                  @default(false)
+  url_shopee               String?
+  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  updated_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  affiliate_links         affiliate_links[]
+  inventory               inventory?
+  inventory_movements     inventory_movements[]
+  inventory_reservations  inventory_reservations[]
+  marketplace_listings    marketplace_listings[]
+  order_items             order_items[]
+  price_history           price_history[]
+  product_bundle_items    product_bundle_items[]
+  pricing_rules           pricing_rules[]
+  product_prices          product_prices[]
+  product_promotions      product_promotions[]
+  categories              categories?               @relation(fields: [categoria_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  suppliers               suppliers?                @relation(fields: [fornecedor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brands                  brands?                   @relation(fields: [marca_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sales_forecasts         sales_forecasts[]
+  supplier_purchase_items supplier_purchase_items[]
+  system_alerts           system_alerts[]
+
+  @@index([ativo], map: "idx_products_ativo")
+  @@index([categoria_id], map: "idx_products_categoria")
+  @@index([ean], map: "idx_products_ean")
+  @@index([marca_id], map: "idx_products_marca")
+  @@index([sku], map: "idx_products_sku")
+}
+
+model sales_forecasts {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_id       String?   @db.Uuid
+  marca_id         String?   @db.Uuid
+  periodo          String?   @db.VarChar(7)
+  vendas_previstas Int?
+  receita_prevista Decimal?  @db.Decimal(10, 2)
+  confianca_pct    Decimal?  @db.Decimal(5, 2)
+  modelo           String?   @db.VarChar(50)
+  compra_sugerida  Int?
+  vendas_reais     Int?
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  brands           brands?   @relation(fields: [marca_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  products         products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model seller_goals {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id              String?   @db.Uuid
+  mes_ano              String?   @db.VarChar(7)
+  meta_valor           Decimal?  @db.Decimal(10, 2)
+  meta_quantidade      Int?
+  bonus_pct            Decimal?  @db.Decimal(5, 2)
+  bonus_valor          Decimal?  @db.Decimal(10, 2)
+  valor_realizado      Decimal?  @default(0) @db.Decimal(10, 2)
+  quantidade_realizada Int?      @default(0)
+  bateu_meta           Boolean?  @default(false)
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+  users                users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model supplier_purchase_items {
+  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  purchase_id        String?             @db.Uuid
+  product_id         String?             @db.Uuid
+  quantidade         Int
+  custo_unitario     Decimal?            @db.Decimal(10, 2)
+  custo_total        Decimal?            @db.Decimal(10, 2)
+  products           products?           @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  supplier_purchases supplier_purchases? @relation(fields: [purchase_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model supplier_purchases {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  supplier_id             String?                   @db.Uuid
+  company_id              String?                   @db.Uuid
+  status                  purchase_status?          @default(sugerida)
+  valor_total             Decimal?                  @db.Decimal(10, 2)
+  previsao_entrega        DateTime?                 @db.Date
+  data_pedido             DateTime?                 @db.Timestamp(6)
+  data_recebimento        DateTime?                 @db.Timestamp(6)
+  condicao_pagamento      String?                   @db.VarChar(100)
+  sugerido_por_bi         Boolean?                  @default(false)
+  created_at              DateTime?                 @default(now()) @db.Timestamp(6)
+  cashflow                cashflow[]
+  supplier_purchase_items supplier_purchase_items[]
+  companies               companies?                @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  suppliers               suppliers?                @relation(fields: [supplier_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model suppliers {
+  id                  String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome                String               @db.VarChar(255)
+  cnpj                String?              @unique(map: "suppliers_cnpj_unique") @db.VarChar(18)
+  contato_nome        String?              @db.VarChar(255)
+  contato_telefone    String?              @db.VarChar(20)
+  contato_email       String?              @db.VarChar(255)
+  endereco            Json?
+  prazo_entrega_dias  Int?                 @default(7)
+  pedido_minimo_valor Decimal?             @db.Decimal(10, 2)
+  ativo               Boolean?             @default(true)
+  created_at          DateTime?            @default(now()) @db.Timestamp(6)
+  products            products[]
+  supplier_purchases  supplier_purchases[]
+}
+
+model system_alerts {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  tipo       String?   @db.VarChar(50)
+  severidade String?   @db.VarChar(20)
+  titulo     String?   @db.VarChar(255)
+  mensagem   String?
+  product_id String?   @db.Uuid
+  user_id    String?   @db.Uuid
+  lido       Boolean?  @default(false)
+  resolvido  Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  products   products? @relation(fields: [product_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model vendedoras {
+  id                 String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome               String   @db.VarChar(255)
+  email              String?  @unique @db.VarChar(255)
+  telefone           String?  @db.VarChar(20)
+  cpf                String?  @db.VarChar(14)
+  avatar_url         String?
+  comissao_pct       Decimal? @default(10) @db.Decimal(5, 2)
+  comissao_tipo      String?  @default("percentual") @db.VarChar(20)
+  comissao_fixa_valor Decimal? @db.Decimal(10, 2)
+  meta_valor         Decimal? @default(5000) @db.Decimal(10, 2)
+  meta_quantidade    Int?     @default(0)
+  bonus_meta_pct     Decimal? @default(5) @db.Decimal(5, 2)
+  bonus_super_meta_pct Decimal? @default(10) @db.Decimal(5, 2)
+  pix_key            String?  @db.VarChar(255)
+  ativa              Boolean? @default(true)
+  observacao         String?
+  supervisor_id      String?  @db.Uuid
+  created_at         DateTime? @default(now()) @db.Timestamp(6)
+  updated_at         DateTime? @default(now()) @db.Timestamp(6)
+  vendedoras_vendedoras vendedoras? @relation("VendedorasToSupervisor", fields: [supervisor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  other_vendedoras   vendedoras[] @relation("VendedorasToSupervisor")
+
+  @@index([ativa], map: "idx_vendedoras_ativa")
+  @@index([supervisor_id], map: "idx_vendedoras_supervisor")
+}
+
+model system_config {
+  id         String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  chave      String    @unique @db.VarChar(100)
+  valor      Json?
+  descricao  String?
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+}
+
+model users {
+  id                               String                @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email                            String                @unique @db.VarChar(255)
+  password_hash                    String                @db.VarChar(255)
+  nome                             String                @db.VarChar(255)
+  telefone                         String?               @db.VarChar(20)
+  cpf_cnpj                         String?               @db.VarChar(18)
+  role                             user_role
+  avatar_url                       String?
+  ativo                            Boolean?              @default(true)
+  seller_data                      Json?
+  vendedora_data                   Json?
+  afiliado_data                    Json?
+  created_at                       DateTime?             @default(now()) @db.Timestamp(6)
+  updated_at                       DateTime?             @default(now()) @db.Timestamp(6)
+  last_login                       DateTime?             @db.Timestamp(6)
+  affiliate_links                  affiliate_links[]
+  audit_log                        audit_log[]
+  commissions_paid                 commissions_paid[]
+  inventory_movements              inventory_movements[]
+  orders_orders_afiliado_idTousers orders[]              @relation("orders_afiliado_idTousers")
+  orders_orders_vendedor_idTousers orders[]              @relation("orders_vendedor_idTousers")
+  seller_goals                     seller_goals[]
+  system_alerts                    system_alerts[]
+
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
+}
+
+enum canal_venda {
+  mercado_livre
+  shopee
+  site_b2c
+  whatsapp
+  b2b
+  vendedora
+  manual
+}
+
+enum cashflow_type {
+  entrada
+  saida
+}
+
+enum mov_tipo {
+  entrada
+  saida
+  ajuste
+  transferencia
+  reserva
+  liberacao
+}
+
+enum order_origem {
+  mercado_livre
+  shopee
+  site_b2c
+  whatsapp
+  b2b
+  vendedora
+}
+
+enum order_status {
+  pendente
+  confirmado
+  separado
+  enviado
+  entregue
+  cancelado
+  devolvido
+}
+
+enum purchase_status {
+  sugerida
+  aprovada
+  enviada
+  recebida
+  cancelada
+}
+
+enum user_role {
+  admin
+  seller
+  vendedora
+  afiliado
+}
+
+// =====================================================
+// CUSTOS MENSAIS (cadastro pra DRE estilo Metrify)
+// =====================================================
+model cost_categories {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome       String   @db.VarChar(100)
+  tipo       String   @db.VarChar(20) // fixo | variavel | imposto | investimento
+  icone      String?  @db.VarChar(50)
+  cor        String?  @db.VarChar(20)
+  ordem      Int?     @default(0)
+  ativa      Boolean? @default(true)
+  company_id String?  @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+
+  costs monthly_costs[]
+
+  @@index([company_id], map: "idx_cost_categories_company")
+}
+
+model monthly_costs {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  category_id String   @db.Uuid
+  company_id  String?  @db.Uuid
+  // Referência ao mês/ano
+  ano         Int
+  mes         Int      // 1-12
+  descricao   String?  @db.VarChar(255)
+  valor       Decimal  @db.Decimal(10, 2)
+  // Snapshot do nome da categoria (pra histórico)
+  categoria_nome String? @db.VarChar(100)
+  pago_em     DateTime? @db.Date
+  observacoes String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+
+  category cost_categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([category_id, ano, mes, descricao])
+  @@index([ano, mes], map: "idx_monthly_costs_periodo")
+  @@index([company_id], map: "idx_monthly_costs_company")
+}
+
+// =====================================================
+// METAS MENSAIS (vendas, receita, lucro)
+// =====================================================
+model monthly_goals {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  company_id      String?  @db.Uuid
+  ano             Int
+  mes             Int      // 1-12
+  meta_receita    Decimal  @db.Decimal(12, 2) @default(0)
+  meta_pedidos    Int      @default(0)
+  meta_margem_pct Decimal  @db.Decimal(5, 2) @default(0) // % margem líquida desejada
+  observacoes     String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@unique([company_id, ano, mes])
+  @@index([ano, mes], map: "idx_monthly_goals_periodo")
+}
+
+// ============================================
+// B2B PORTAL - Cadastro, contas vinculadas
+// ============================================
+
+model b2b_clients {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email           String   @unique @db.VarChar(255)
+  password_hash   String   @db.VarChar(255)
+  nome            String   @db.VarChar(255)
+  empresa         String?  @db.VarChar(255)
+  cnpj            String?  @db.VarChar(18)
+  telefone        String?  @db.VarChar(20)
+  plano           b2b_plano @default(basic)
+  status          b2b_status @default(ativo)
+  trial_ate       DateTime? @db.Date
+  ultimo_login    DateTime? @db.Timestamp(6)
+  observacoes     String?
+  avatar_url      String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  marketplace_accounts b2b_marketplace_accounts[]
+  audit_events         audit_events[]
+  scheduled_reports    scheduled_reports[]
+
+  @@index([status], map: "idx_b2b_clients_status")
+  @@index([plano], map: "idx_b2b_clients_plano")
+}
+
+enum b2b_plano {
+  basic
+  pro
+  enterprise
+}
+
+enum b2b_status {
+  ativo
+  trial
+  inativo
+  bloqueado
+}
+
+model b2b_marketplace_accounts {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  b2b_client_id   String   @db.Uuid
+  plataforma      String   @db.VarChar(50) // 'mercado_livre' | 'shopee' | 'site_b2c' | etc
+  channel_type    channel_type @default(marketplace) // tipo do canal
+  account_id      String?  @db.VarChar(100) // ID da conta no ML
+  nickname        String   @db.VarChar(255)
+  email           String?  @db.VarChar(255)
+  access_token    String?  @db.Text
+  refresh_token   String?  @db.Text
+  token_expira_em DateTime? @db.Timestamp(6)
+  status          b2b_account_status @default(conectado)
+  ultima_sync     DateTime? @db.Timestamp(6)
+  total_pedidos   Int      @default(0)
+  total_receita   Decimal  @default(0) @db.Decimal(12, 2)
+  observacoes     String?
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  b2b_clients b2b_clients @relation(fields: [b2b_client_id], references: [id], onDelete: Cascade)
+
+  @@index([b2b_client_id], map: "idx_b2b_mkt_client")
+  @@index([plataforma], map: "idx_b2b_mkt_plataforma")
+  @@index([channel_type], map: "idx_b2b_mkt_channel")
+  @@index([status], map: "idx_b2b_mkt_status")
+}
+
+enum b2b_account_status {
+  conectado
+  expirado
+  erro
+  pausado
+}
+
+// ============================================
+// AUDIT DE COMPORTAMENTO - Cada clique/view
+// ============================================
+
+model audit_events {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id         String?  @db.Uuid // admin user
+  b2b_client_id   String?  @db.Uuid // b2b client
+  event_type      String   @db.VarChar(50) // 'page_view' | 'click' | 'api_call' | 'login' | 'logout' | 'export' | 'download'
+  page            String?  @db.VarChar(255) // URL/path
+  action          String?  @db.VarChar(100) // nome do bot�o/a��o
+  metadata        Json?    // dados extras (filtros aplicados, params, etc)
+  ip_address      String?  @db.VarChar(45)
+  user_agent      String?  @db.Text
+  session_id      String?  @db.VarChar(100)
+  duration_ms     Int?     // tempo na p�gina
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  b2b_clients b2b_clients? @relation(fields: [b2b_client_id], references: [id], onDelete: Cascade)
+
+  @@index([b2b_client_id], map: "idx_audit_events_b2b")
+  @@index([user_id], map: "idx_audit_events_user")
+  @@index([event_type], map: "idx_audit_events_event_type")
+  @@index([page], map: "idx_audit_events_page")
+  @@index([created_at], map: "idx_audit_events_created")
+  @@index([session_id], map: "idx_audit_events_session")
+}
+
+// ============================================
+// RELAT�RIOS AGENDADOS - BI
+// ============================================
+
+model scheduled_reports {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  b2b_client_id   String?  @db.Uuid // null = admin
+  nome            String   @db.VarChar(255)
+  descricao       String?
+  query_type      String   @db.VarChar(50) // 'vendas_diarias' | 'top_produtos' | 'financeiro' | 'churn' | etc
+  filtros         Json?    // filtros aplicados
+  formato         String   @default("csv") @db.VarChar(20) // 'csv' | 'pdf' | 'json'
+  schedule        String   @db.VarChar(50) // 'daily' | 'weekly' | 'monthly' | 'manual'
+  recipients      String[] // emails pra enviar
+  proxima_execucao DateTime? @db.Timestamp(6)
+  ultima_execucao DateTime? @db.Timestamp(6)
+  ativo           Boolean? @default(true)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  b2b_clients b2b_clients? @relation(fields: [b2b_client_id], references: [id], onDelete: Cascade)
+
+  @@index([b2b_client_id], map: "idx_reports_b2b")
+  @@index([schedule], map: "idx_reports_schedule")
+  @@index([ativo], map: "idx_reports_ativo")
+}
+
+// ============================================
+// SEGMENTA��O DE CANAIS
+// Cada venda vem de um canal distinto.
+// B2B s� v� contas vinculadas dele (marketplace).
+// Admin v� varejo (site B2C + WhatsApp) separado.
+// ============================================
+
+enum channel_type {
+  marketplace       // ML, Shopee, Amazon � vinculado a B2B
+  varejo_site       // Site B2C pr�prio (LIURAESSENCE)
+  varejo_whatsapp   // Vendas diretas via WhatsApp
+  b2b               // Vendas pra lojistas via plataforma B2B
+  atacado           // Vendas em grande quantidade
+  outros
+}
+
+model b2b_invites {
+  id              String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email           String   @db.VarChar(255)
+  nome            String?  @db.VarChar(255)
+  empresa         String?  @db.VarChar(255)
+  token           String   @unique @db.VarChar(100)
+  enviado_por     String?  @db.Uuid // user_id do admin que enviou
+  mensagem        String?  @db.Text
+  plano           b2b_plano @default(basic)
+  status          invite_status @default(pendente)
+  expira_em       DateTime @db.Timestamp(6)
+  aceito_em       DateTime? @db.Timestamp(6)
+  aceito_por      String?  @db.Uuid // b2b_client_id que aceitou
+  ip_aceito       String?  @db.VarChar(45)
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([email], map: "idx_b2b_invites_email")
+  @@index([token], map: "idx_b2b_invites_token")
+  @@index([status], map: "idx_b2b_invites_status")
+}
+
+enum invite_status {
+  pendente
+  aceito
+  expirado
+  revogado
+}
+
+// ============================================================
+// EQUIPE / COLABORADORES
+// ============================================================
+
+model equipe {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  nome          String    @db.VarChar(255)
+  cargo         String?   @db.VarChar(100)
+  foto_url      String?   @db.VarChar(500)
+  telefone      String?   @db.VarChar(30)
+  email         String?   @db.VarChar(255)
+  data_nascimento DateTime? @db.Date
+  data_admissao DateTime?  @db.Date
+  salario_base  Decimal?  @default(0) @db.Decimal(10, 2)
+  ativo         Boolean   @default(true)
+  observacao    String?   @db.Text
+  company_id    String?   @db.Uuid
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  pontos        equipe_ponto[]
+  salarios      equipe_salarios[]
+  pagamentos    equipe_pagamentos[]
+
+  @@index([company_id], map: "idx_equipe_company")
+  @@index([ativo], map: "idx_equipe_ativo")
+  @@index([data_nascimento], map: "idx_equipe_nascimento")
+}
+
+model equipe_ponto {
+  id            String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  equipe_id     String        @db.Uuid
+  tipo          ponto_tipo    @default(entrada)
+  data_hora     DateTime      @db.Timestamp(6)
+  foto_url      String?       @db.VarChar(500)
+  observacao    String?       @db.Text
+  registrado_por String?       @db.VarChar(255)
+  company_id    String?       @db.Uuid
+  created_at    DateTime?     @default(now()) @db.Timestamp(6)
+
+  equipe        equipe        @relation(fields: [equipe_id], references: [id], onDelete: Cascade)
+
+  @@index([equipe_id], map: "idx_equipe_ponto_equipe")
+  @@index([data_hora], map: "idx_equipe_ponto_data")
+}
+
+model equipe_salarios {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  equipe_id     String    @db.Uuid
+  mes           Int
+  ano           Int
+  salario_base  Decimal   @default(0) @db.Decimal(10, 2)
+  bonificacao   Decimal   @default(0) @db.Decimal(10, 2)
+  descontos     Decimal   @default(0) @db.Decimal(10, 2)
+  salario_liquido Decimal @default(0) @db.Decimal(10, 2)
+  observacao    String?   @db.Text
+  pago_em       DateTime? @db.Date
+  pago          Boolean   @default(false)
+  company_id    String?   @db.Uuid
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+
+  equipe        equipe    @relation(fields: [equipe_id], references: [id], onDelete: Cascade)
+
+  @@unique([equipe_id, mes, ano], map: "uq_equipe_salario_mes_ano")
+  @@index([equipe_id], map: "idx_equipe_salarios_equipe")
+}
+
+model equipe_pagamentos {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  equipe_id        String         @db.Uuid
+  tipo             pagamento_tipo  @default(vale)
+  valor            Decimal         @db.Decimal(10, 2)
+  data_pagamento   DateTime       @db.Date
+  referencia_mes   Int?
+  referencia_ano   Int?
+  observacao       String?        @db.Text
+  registrado_por   String?        @db.VarChar(255)
+  company_id       String?        @db.Uuid
+  created_at       DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?      @default(now()) @db.Timestamp(6)
+
+  equipe           equipe         @relation(fields: [equipe_id], references: [id], onDelete: Cascade)
+
+  @@index([equipe_id], map: "idx_equipe_pagamentos_equipe")
+  @@index([data_pagamento], map: "idx_equipe_pagamentos_data")
+  @@index([referencia_mes], map: "idx_equipe_pagamentos_mes")
+}
+
+enum ponto_tipo {
+  entrada
+  saida
+  pausa
+}
+
+enum pagamento_tipo {
+  salario
+  vale
+  bonus
+  decimo_terceiro
+  ferias
+  outro
+}
+
+// ─── MÓDULO PROMOÇÕES ML ──────────────────────────────────────────────────────
+
+model promo_scenarios {
+  id                     String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_name           String    @db.VarChar(255)
+  mlb                    String    @db.VarChar(50)
+  max_seller_discount_pct Decimal? @db.Decimal(5, 2)
+  min_sale_price         Decimal? @db.Decimal(10, 2)
+  min_net_receivable     Decimal? @db.Decimal(10, 2)
+  activation_mode        String   @default("conservative") @db.VarChar(20) // conservative | aggressive
+  active                 Boolean  @default(false)
+  created_at             DateTime? @default(now()) @db.Timestamp(6)
+  updated_at             DateTime? @default(now()) @db.Timestamp(6)
+
+  history promo_scenario_history[]
+  latest_query promo_latest_queries?
+  simulations promo_simulations[]
+
+  @@unique([mlb], map: "uq_promo_scenario_mlb")
+}
+
+model promo_scenario_history {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  scenario_id     String    @db.Uuid
+  event_type      String    @db.VarChar(50) // scenario_created | criterion_added | criterion_changed | criterion_removed | mode_changed | activated | deactivated | mlb_changed | scenario_duplicated
+  old_values      Json?
+  new_values      Json?
+  source_scenario_id String? @db.Uuid
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  scenario promo_scenarios @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+
+  @@index([scenario_id], map: "idx_promo_history_scenario")
+}
+
+model promo_latest_queries {
+  id               String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  scenario_id      String    @unique @db.Uuid
+  ml_user_id       String?   @db.VarChar(50)
+  mlb_at_query     String?   @db.VarChar(50)
+  raw_payload      Json?
+  normalized_data  Json?
+  fetched_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+
+  scenario promo_scenarios @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+
+  @@index([scenario_id], map: "idx_promo_latest_query_scenario")
+}
+
+model promo_simulations {
+  id                   String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  scenario_id          String    @db.Uuid
+  ml_user_id           String?   @db.VarChar(50)
+  mlb_at_simulation    String?   @db.VarChar(50)
+  product_name_at_sim  String?   @db.VarChar(255)
+  promotion_id         String?   @db.VarChar(100)
+  promotion_type       String?   @db.VarChar(50)
+  promotion_snapshot   Json?
+  scenario_snapshot    Json?
+  simulation_result   String?   @db.VarChar(30) // can_join | cannot_join | inconclusive
+  seller_pct           Decimal?  @db.Decimal(10, 4)
+  sale_price           Decimal?  @db.Decimal(10, 2)
+  net_receivable       Decimal?  @db.Decimal(10, 2)
+  decision_reasons     Json?
+  missing_fields       Json?
+  cumulative_effects  Json?
+  created_at           DateTime? @default(now()) @db.Timestamp(6)
+
+  scenario promo_scenarios @relation(fields: [scenario_id], references: [id], onDelete: Cascade)
+
+  @@index([scenario_id], map: "idx_promo_simulations_scenario")
+}
+
+// ─── CONTAS A PAGAR ─────────────────────────────────────────────────────────────
+
+model expenses {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  description   String    @db.VarChar(255)
+  amount        Decimal   @db.Decimal(10, 2)
+  category_type String    @db.VarChar(20)  // fixed | variable
+  category      String    @db.VarChar(50)   // aluguel | salario | luz | internet | marketing | insumos | fretes | impostos | comissoes | outros
+  due_date      DateTime  @db.Date
+  paid_date     DateTime? @db.Date
+  status        String    @default("pending") @db.VarChar(20)  // pending | paid | cancelled
+  recurrence    String    @default("monthly") @db.VarChar(20)  // one_time | monthly | yearly
+  notes        String?   @db.Text
+  company_id   String?   @db.Uuid
+  created_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([category_type], map: "idx_expenses_type")
+  @@index([status], map: "idx_expenses_status")
+  @@index([due_date], map: "idx_expenses_due_date")
+  @@index([company_id], map: "idx_expenses_company")
+}
+
+model folhaControle {
+  id              String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  codigo          String    @db.VarChar(100)    // código de rastreio extraído do PDF
+  sku             String?   @db.VarChar(100)    // SKU detectado (opcional)
+  nome            String?   @db.VarChar(255)     // nome do produto (opcional)
+  quantidade      Int       @default(1)
+  arquivo_origem  String?   @db.VarChar(255)     // nome do arquivo de origem
+  data_upload    DateTime? @db.Timestamp(6)
+  status          String    @default("pendente") @db.VarChar(20)  // pendente | separado | entregue
+  responsavel     String?   @db.VarChar(100)    // quem separou/entregou
+  observacao      String?   @db.Text
+  created_at      DateTime? @default(now()) @db.Timestamp(6)
+  updated_at      DateTime? @default(now()) @db.Timestamp(6)
+
+  @@index([status], map: "idx_folha_status")
+  @@index([codigo], map: "idx_folha_codigo")
+  @@index([responsavel], map: "idx_folha_responsavel")
+  @@index([data_upload], map: "idx_folha_data")
+}
