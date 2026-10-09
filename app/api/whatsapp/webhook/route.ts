@@ -1,7 +1,7 @@
 /**
  * =====================================================
  * WEBHOOK WHATSAPP BUSINESS API
- * v2 — liberando todos os números (WA_NUMEROS_PERMITIDOS = vazio)
+ * v3 — todos os números permitidos (WA_NUMEROS_PERMITIDOS = vazio)
  * =====================================================
  * Recebe webhooks do WhatsApp/Meta:
  *   - Mensagens recebidas (inbound)
