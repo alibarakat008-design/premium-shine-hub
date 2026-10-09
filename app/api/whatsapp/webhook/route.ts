@@ -159,24 +159,24 @@ async function enviarRespostaAutomatica(to: string, texto: string, tipo: string,
   let resposta = ''
 
   // Roteamento por palavras-chave
-  if (/^(oi|olá|ola|hey|hi|hello)/i.test(textoLower)) {
-    resposta = 'Olá! 👋 Bem-vindo(a) à *Liura Essence*!\n\nSou a assistente virtual da nossa loja. Como posso te ajudar?\n\n🔹 *catalogo* — Ver nossos produtos\n🔹 *preço* — Consultar valores\n🔹 *frete* — Informações sobre entrega\n🔹 *pedido* — Acompanhar pedido\n🔹 *contato* — Falar com atendente'
-  } else if (/catalogo|catálogo|produtos|ver items/i.test(textoLower)) {
-    resposta = '📦 *Catálogo Liura Essence*\n\nTemos mais de 500 produtos de perfumaria!\n\nMarcas principais:\n• ISABELLE LA BELLE\n• POKOLOKA\n• BARBOUR\'S\n• BOURBON\n• SABAH\n• CLUB\n• ANGEL\n• SUGAR\n\nAcesse nosso catálogo completo no Mercado Livre: ml.mercadolivre.com.br/liuraessence'
-  } else if (/preço|valor|custo|quanto/i.test(textoLower)) {
-    resposta = '💰 *Consulta de Preços*\n\nNossos produtos variam de R$ 29,90 a R$ 200+, dependendo da marca e tamanho.\n\nOs best-sellers são:\n• ASAD — a partir de R$ 79,90\n• BOURBON — a partir de R$ 89,90\n• SABAH — a partir de R$ 69,90\n• BARBOUR\'S — a partir de R$ 99,90\n\nQuer que eu passe o link de algum produto específico?'
+  if (/^(oi|ol\u00e1|ola|hey|hi|hello)/i.test(textoLower)) {
+    resposta = '\u00d3la! 👋 Bem-vindo(a) \u00e0 *Liura Essence*!\n\nSou a assistente virtual da nossa loja. Como posso te ajudar?\n\n🔹 *catalogo* — Ver nossos produtos\n🔹 *pre\u00e7o* — Consultar valores\n🔹 *frete* — Informa\u00e7\u00f5es sobre entrega\n🔹 *pedido* — Acompanhar pedido\n🔹 *contato* — Falar com atendente'
+  } else if (/catalogo|cat\u00e1logo|produtos|ver items/i.test(textoLower)) {
+    resposta = '📦 *Cat\u00e1logo Liura Essence*\n\nTemos mais de 500 produtos de perfumaria!\n\nMarcas principais:\n• ISABELLE LA BELLE\n• POKOLOKA\n• BARBOUR\'S\n• BOURBON\n• SABAH\n• CLUB\n• ANGEL\n• SUGAR\n\nAcesse nosso cat\u00e1logo completo no Mercado Livre: ml.mercadolivre.com.br/liuraessence'
+  } else if (/pre\u00e7o|valor|custo|quanto/i.test(textoLower)) {
+    resposta = '💰 *Consulta de Pre\u00e7os*\n\nNossos produtos variam de R$ 29,90 a R$ 200+, dependendo da marca e tamanho.\n\nOs best-sellers s\u00e3o:\n• ASAD — a partir de R$ 79,90\n• BOURBON — a partir de R$ 89,90\n• SABAH — a partir de R$ 69,90\n• BARBOUR\'S — a partir de R$ 99,90\n\nQuer que eu passe o link de algum produto espec\u00edfico?'
   } else if (/frete|entrega|envio|enviar/i.test(textoLower)) {
-    resposta = '🚚 *Informações de Frete*\n\n• *FULL*: Entrega rápida Mercado Livre (habitualmente 1-2 dias)\n• *Normal*: 5-10 dias úteis\n\nO frete é calculado automaticamente pelo Mercado Livre conforme seu CEP.\n\nEm compras acima de R$ 199, o *frete é grátis*!'
+    resposta = '🚚 *Informa\u00e7\u00f5es de Frete*\n\n• *FULL*: Entrega r\u00e1pida Mercado Livre (habitualmente 1-2 dias)\n• *Normal*: 5-10 dias \u00fateis\n\nO frete \u00e9 calculado automaticamente pelo Mercado Livre conforme seu CEP.\n\nEm compras acima de R$ 199, o *frete \u00e9 gr\u00e1tis*!'
   } else if (/pedido|acompanhar|rastrear|tracking/i.test(textoLower)) {
-    resposta = '📱 *Acompanhamento de Pedido*\n\nPara rastrear seu pedido, acesse:\n👉 https://www.mercadolivre.com.br/orders\n\nSe preferir, me passe o *número do pedido* e eu te ajudo!'
+    resposta = '📱 *Acompanhamento de Pedido*\n\nPara rastrear seu pedido, acesse:\n👉 https://www.mercadolivre.com.br/orders\n\nSe preferir, me passe o *n\u00famero do pedido* e eu te ajudo!'
   } else if (/contato|atendente|humano|pessoa|telefone|whatsapp/i.test(textoLower)) {
-    resposta = '📞 *Fale com nossa equipe*\n\nWhatsApp: (11) 97144-8104\nE-mail: contato@liuraessence.com.br\n\nHorário de atendimento:\nSegunda a Sexta: 9h às 18h\nSábado: 9h às 13h'
-  } else if (/horário|funcionamento|aberto|fechado/i.test(textoLower)) {
-    resposta = '🕐 *Horário de Funcionamento*\n\nSegunda a Sexta: 9h às 18h\nSábado: 9h às 13h\nDomingo: Fechado\n\nRespondemos mensagens de segunda a sábado!'
+    resposta = '📞 *Fale com nossa equipe*\n\nWhatsApp: (11) 97144-8104\nE-mail: contato@liuraessence.com.br\n\nHor\u00e1rio de atendimento:\nSegunda a Sexta: 9h \u00e0s 18h\nS\u00e1bado: 9h \u00e0s 13h'
+  } else if (/hor\u00e1rio|funcionamento|aberto|fechado/i.test(textoLower)) {
+    resposta = '🕐 *Hor\u00e1rio de Funcionamento*\n\nSegunda a Sexta: 9h \u00e0s 18h\nS\u00e1bado: 9h \u00e0s 13h\nDomingo: Fechado\n\nRespondemos mensagens de segunda a s\u00e1bado!'
   } else if (/pix|payment|pagar|boleto|parcelar/i.test(textoLower)) {
-    resposta = '💳 *Formas de Pagamento*\n\nAceitamos:\n• Cartão de Crédito (até 12x)\n• PIX (à vista)\n• Boleto Bancário\n• Mercado Pago\n\nTodos os pagamentos são processados pelo Mercado Livre — total segurança!'
+    resposta = '💳 *Formas de Pagamento*\n\nAceitamos:\n• Cart\u00e3o de Cr\u00e9dito (at\u00e9 12x)\n• PIX (\u00e0 vista)\n• Boleto Banc\u00e1rio\n• Mercado Pago\n\nTodos os pagamentos s\u00e3o processados pelo Mercado Livre — total seguran\u00e7a!'
   } else {
-    resposta = '🤖 *Entendi sua mensagem!*\n\nAinda estou aprendendo. Por enquanto posso ajudar com:\n\n🔹 *catalogo* — Ver produtos\n🔹 *preço* — Consultar valores\n🔹 *frete* — Informações de entrega\n🔹 *pedido* — Acompanhar pedido\n🔹 *contato* — Falar com atendente\n\nOu me mande o número do pedido que eu procuro pra você!'
+    resposta = '🤖 *Entendi sua mensagem!*\n\nAinda estou aprendendo. Por enquanto posso ajudar com:\n\n🔹 *catalogo* — Ver produtos\n🔹 *pre\u00e7o* — Consultar valores\n🔹 *frete* — Informa\u00e7\u00f5es de entrega\n🔹 *pedido* — Acompanhar pedido\n🔹 *contato* — Falar com atendente\n\nOu me mande o n\u00famero do pedido que eu procuro pra voc\u00ea!'
   }
 
   // Enviar resposta via WhatsApp API
